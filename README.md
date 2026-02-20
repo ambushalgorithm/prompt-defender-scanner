@@ -1,4 +1,4 @@
-# 🛡️ prompt-defender-scanner
+# 🛡️ Prompt Defender Scanner
 
 <p align="center">
   <img src="https://img.shields.io/badge/Scanner-Python-cyan?style=for-the-badge&logo=python" alt="Python">
@@ -25,7 +25,7 @@ This scanner requires a client to send content for scanning:
 | Repo | Description |
 |------|-------------|
 | **prompt-defender-scanner** | This repo — standalone scanner service |
-| **openclaw-prompt-defender** | OpenClaw plugin that calls this scanner |
+| **openclaw-prompt-defender-plugin** | OpenClaw plugin that calls this scanner |
 
 ## 🚀 Quick Start
 
@@ -258,7 +258,7 @@ MIT License
 
 ## 🔗 Related Projects
 
-- [openclaw-prompt-defender](https://github.com/ambushalgorithm/openclaw-prompt-defender) — OpenClaw plugin
+- [openclaw-prompt-defender-plugin](https://github.com/ambushalgorithm/openclaw-prompt-defender-plugin) — OpenClaw plugin
 - [prompt-injection-testing](https://github.com/ambushalgorithm/prompt-injection-testing) — Test samples
 - [prompt-guard](https://github.com/seojoonkim/prompt-guard) — Regex patterns
 
