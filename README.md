@@ -55,8 +55,14 @@ python -m app
 # Build
 docker build -t prompt-defender-scanner .
 
-# Run
-docker run -d -p 8080:8080 prompt-defender-scanner
+# Run with friendly name
+docker run -d --name prompt-defender-scanner -p 8080:8080 prompt-defender-scanner
+
+# View logs
+docker logs -f prompt-defender-scanner
+
+# Stop
+docker stop prompt-defender-scanner
 ```
 
 ### Option C: Docker Compose
@@ -68,12 +74,20 @@ version: "3.8"
 services:
   scanner:
     image: prompt-defender-scanner
+    container_name: prompt-defender-scanner
     ports:
       - "8080:8080"
 ```
 
 ```bash
+# Start
 docker-compose up -d
+
+# View logs
+docker logs -f prompt-defender-scanner
+
+# Stop
+docker-compose down
 ```
 
 ## 📡 API
