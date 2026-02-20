@@ -1,5 +1,5 @@
 """Prompt Defender Security Service."""
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, Optional
@@ -31,6 +31,8 @@ class ScanRequest(BaseModel):
     is_error: bool = False
     duration_ms: int = 0
     source: Optional[str] = None  # User ID for owner bypass
+    # Configuration (all in body)
+    config: Optional[dict] = None
 
 
 class ScanResponse(BaseModel):
@@ -42,23 +44,18 @@ class ScanResponse(BaseModel):
 
 
 @app.post("/scan", response_model=ScanResponse)
-async def scan(
-    request: ScanRequest,
-    x_config: Optional[str] = Header(None),
-    x_user_id: Optional[str] = Header(None)
-):
+async def scan(request: ScanRequest):
     """Scan tool result for prompt injection attempts."""
     start_time = time.time()
     
-    # Load configuration
+    # Load configuration from request body
     try:
-        config_dict = json.loads(x_config) if x_config else {}
-        config = load_config(config_dict)
+        config = load_config(request.config or {})
     except (json.JSONDecodeError, ValueError):
         config = ServiceConfig()
     
-    # Use user_id from request body or header
-    user_id = request.source or x_user_id
+    # Use user_id from request body
+    user_id = request.source
     
     # Owner bypass check
     if check_owner_bypass(user_id, config.owner_ids):
