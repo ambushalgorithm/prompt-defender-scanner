@@ -95,14 +95,50 @@ curl -X POST "http://localhost:8080/scan" \
 
 ### Request
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | string | Content type (e.g., "output") |
-| `tool_name` | string | Name of the tool that produced the content |
-| `content` | any | Content to scan |
-| `is_error` | boolean | Whether this is an error result |
-| `duration_ms` | number | Execution time in milliseconds |
-| `source` | string | Session/user identifier for owner bypass |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | Content type (e.g., "output") |
+| `tool_name` | string | Yes | Name of the tool that produced the content |
+| `content` | any | Yes | Content to scan |
+| `is_error` | boolean | No | Whether this is an error result |
+| `duration_ms` | number | No | Execution time in milliseconds |
+| `source` | string | No | Session/user identifier for owner bypass |
+| `config` | object | No | Configuration (see below) |
+
+### Configuration (in body)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `scan_enabled` | `true` | Enable/disable scanning |
+| `timeout_ms` | `5000` | Request timeout |
+| `fail_open` | `true` | Allow if scanner fails |
+| `owner_ids` | `[]` | User IDs that bypass scanning |
+| `features.prompt_guard` | `true` | Enable regex pattern scanning |
+| `features.ml_detection` | `false` | Enable ML-based detection |
+| `features.secret_scanner` | `false` | Enable secrets/PII detection |
+| `prompt_guard.scan_tier` | `1` | 0=critical, 1=+high, 2=+medium |
+| `prompt_guard.excluded_tools` | `[]` | Tools to skip scanning |
+| `prompt_guard.decode_base64` | `true` | Decode Base64 before scanning |
+
+Example with full config:
+```json
+{
+  "type": "output",
+  "tool_name": "web_fetch",
+  "content": "Hello world",
+  "source": "user123",
+  "config": {
+    "owner_ids": ["1461460866850357345"],
+    "features": {
+      "prompt_guard": true
+    },
+    "prompt_guard": {
+      "scan_tier": 1,
+      "excluded_tools": ["echo"]
+    }
+  }
+}
+```
 
 ### Response
 
@@ -141,7 +177,7 @@ curl -X POST "http://localhost:8080/scan" \
 
 ## 🔧 Configuration
 
-Configuration is passed via the `X-Config` header as a JSON string:
+Configuration is passed in the request body under the `config` field:
 
 ```json
 {
