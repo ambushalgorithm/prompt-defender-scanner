@@ -1,7 +1,7 @@
 """
 Configuration management for prompt-defender service.
 
-Handles feature flags, scanning tiers, and owner bypass.
+Handles feature flags and scanning tiers.
 """
 
 from typing import List, Dict, Optional
@@ -14,7 +14,6 @@ class PromptGuardConfig(BaseModel):
     hash_cache: bool = True
     decode_base64: bool = True
     multilang: List[str] = ["en"]
-    excluded_tools: List[str] = []  # Tools to skip scanning (e.g., exec, read)
 
 
 class Features(BaseModel):
@@ -29,7 +28,6 @@ class ServiceConfig(BaseModel):
     """Main service configuration."""
     features: Features = Features()
     prompt_guard: PromptGuardConfig = PromptGuardConfig()
-    owner_ids: List[str] = []
     fail_open: bool = True
 
 
@@ -38,7 +36,7 @@ def load_config(config_dict: Optional[Dict] = None) -> ServiceConfig:
     Load configuration from dictionary.
     
     Args:
-        config_dict: Configuration dictionary (from request headers or file)
+        config_dict: Configuration dictionary (from request body)
     
     Returns:
         ServiceConfig instance
@@ -47,20 +45,3 @@ def load_config(config_dict: Optional[Dict] = None) -> ServiceConfig:
         return ServiceConfig()
     
     return ServiceConfig(**config_dict)
-
-
-def check_owner_bypass(user_id: Optional[str], owner_ids: List[str]) -> bool:
-    """
-    Check if user is in trusted owner list.
-    
-    Args:
-        user_id: User ID to check
-        owner_ids: List of trusted owner IDs
-    
-    Returns:
-        True if user should bypass scanning
-    """
-    if not user_id or not owner_ids:
-        return False
-    
-    return user_id in owner_ids

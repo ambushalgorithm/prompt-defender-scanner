@@ -1,5 +1,5 @@
 """Prompt Defender Security Service."""
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Any, Optional
@@ -9,7 +9,7 @@ import json
 from logger import get_logger
 from scanner import get_scanner
 from decoder import decode_and_scan, has_encoding
-from config import load_config, check_owner_bypass, ServiceConfig
+from config import load_config, ServiceConfig
 
 app = FastAPI(title="Prompt Defender Security Service")
 logger = get_logger()
@@ -25,14 +25,10 @@ app.add_middleware(
 
 
 class ScanRequest(BaseModel):
-    type: str
-    tool_name: str
+    """Simplified scan request - just content and optional config."""
     content: Any
-    is_error: bool = False
-    duration_ms: int = 0
-    source: Optional[str] = None  # User ID for owner bypass
-    # Configuration (all in body)
-    config: Optional[dict] = None
+    features: Optional[dict] = None
+    scan_tier: Optional[int] = None
 
 
 class ScanResponse(BaseModel):
@@ -40,48 +36,27 @@ class ScanResponse(BaseModel):
     reason: Optional[str] = None
     sanitized_content: Optional[Any] = None
     matches: Optional[list[dict]] = None
-    owner_bypass: bool = False
 
 
 @app.post("/scan", response_model=ScanResponse)
 async def scan(request: ScanRequest):
-    """Scan tool result for prompt injection attempts."""
+    """Scan content for prompt injection attempts."""
     start_time = time.time()
     
-    # Load configuration from request body
+    # Build config from flattened request
+    config_dict = {}
+    if request.features:
+        config_dict["features"] = request.features
+    if request.scan_tier is not None:
+        if "prompt_guard" not in config_dict:
+            config_dict["prompt_guard"] = {}
+        config_dict["prompt_guard"]["scan_tier"] = request.scan_tier
+    
+    # Load configuration
     try:
-        config = load_config(request.config or {})
+        config = load_config(config_dict)
     except (json.JSONDecodeError, ValueError):
         config = ServiceConfig()
-    
-    # Use user_id from request body
-    user_id = request.source
-    
-    # Owner bypass check
-    if check_owner_bypass(user_id, config.owner_ids):
-        logger.log_scan(
-            action="allow",
-            tool_name=request.tool_name,
-            severity="safe",
-            matches=[],
-            duration_ms=0,
-            source=user_id
-        )
-        
-        print(f"[PROMPT DEFENDER] Owner bypass: user {user_id}")
-        
-        return ScanResponse(
-            action="allow",
-            reason="Owner bypass active",
-            owner_bypass=True
-        )
-    
-    # Check if tool is in excluded list
-    if request.tool_name in config.prompt_guard.excluded_tools:
-        return ScanResponse(
-            action="allow",
-            reason=f"Tool '{request.tool_name}' excluded from scanning"
-        )
     
     # Convert content to string for scanning
     content_str = str(request.content)
@@ -112,7 +87,7 @@ async def scan(request: ScanRequest):
         severity = "critical" if any(m["severity"] == "critical" for m in matches) else "high"
         
         # Log the match
-        print(f"[PROMPT DEFENDER] Blocked {request.tool_name}: {len(matches)} match(es)")
+        print(f"[PROMPT DEFENDER] Blocked: {len(matches)} match(es)")
         for m in matches:
             print(f"  - {m['type']}: {m['pattern'][:30]}...")
         
@@ -122,20 +97,20 @@ async def scan(request: ScanRequest):
         # Log threat to persistent storage
         logger.log_threat(
             severity=severity,
-            tool_name=request.tool_name,
+            tool_name="unknown",  # Removed from API
             matches=matches,
             content=request.content,
-            source=user_id
+            source=None  # Removed from API
         )
         
         # Log scan event
         logger.log_scan(
             action="block",
-            tool_name=request.tool_name,
+            tool_name="unknown",
             severity=severity,
             matches=matches,
             duration_ms=total_duration_ms,
-            source=user_id
+            source=None
         )
         
         return ScanResponse(
@@ -147,11 +122,11 @@ async def scan(request: ScanRequest):
     # Log allowed scan
     logger.log_scan(
         action="allow",
-        tool_name=request.tool_name,
+        tool_name="unknown",
         severity="safe",
         matches=[],
         duration_ms=total_duration_ms,
-        source=user_id
+        source=None
     )
     
     # Allow through

@@ -111,46 +111,18 @@ curl -X POST "http://localhost:8080/scan" \
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | Yes | Content type (e.g., "output") |
-| `tool_name` | string | Yes | Name of the tool that produced the content |
 | `content` | any | Yes | Content to scan |
-| `is_error` | boolean | No | Whether this is an error result |
-| `duration_ms` | number | No | Execution time in milliseconds |
-| `source` | string | No | Session/user identifier for owner bypass |
-| `config` | object | No | Configuration (see below) |
+| `features` | object | No | Feature flags (see below) |
+| `scan_tier` | number | No | 0=critical, 1=+high, 2=+medium |
 
-### Configuration (in body)
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `scan_enabled` | `true` | Enable/disable scanning |
-| `timeout_ms` | `5000` | Request timeout |
-| `fail_open` | `true` | Allow if scanner fails |
-| `owner_ids` | `[]` | User IDs that bypass scanning |
-| `features.prompt_guard` | `true` | Enable regex pattern scanning |
-| `features.ml_detection` | `false` | Enable ML-based detection |
-| `features.secret_scanner` | `false` | Enable secrets/PII detection |
-| `prompt_guard.scan_tier` | `1` | 0=critical, 1=+high, 2=+medium |
-| `prompt_guard.excluded_tools` | `[]` | Tools to skip scanning |
-| `prompt_guard.decode_base64` | `true` | Decode Base64 before scanning |
-
-Example with full config:
+Example:
 ```json
 {
-  "type": "output",
-  "tool_name": "web_fetch",
   "content": "Hello world",
-  "source": "user123",
-  "config": {
-    "owner_ids": ["1461460866850357345"],
-    "features": {
-      "prompt_guard": true
-    },
-    "prompt_guard": {
-      "scan_tier": 1,
-      "excluded_tools": ["echo"]
-    }
-  }
+  "features": {
+    "prompt_guard": true
+  },
+  "scan_tier": 1
 }
 ```
 
@@ -191,33 +163,25 @@ Example with full config:
 
 ## 🔧 Configuration
 
-Configuration is passed in the request body under the `config` field:
+Configuration is flattened in the request body:
 
 ```json
 {
-  "scan_enabled": true,
-  "timeout_ms": 5000,
-  "fail_open": true,
   "features": {
     "prompt_guard": true,
     "ml_detection": false,
     "secret_scanner": false
   },
-  "prompt_guard": {
-    "scan_tier": 1
-  }
+  "scan_tier": 1
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `scan_enabled` | `true` | Enable/disable scanning |
-| `timeout_ms` | `5000` | Request timeout |
-| `fail_open` | `true` | Allow if scanner fails |
+| Field | Default | Description |
+|-------|---------|-------------|
 | `features.prompt_guard` | `true` | Enable regex pattern scanning |
 | `features.ml_detection` | `false` | Enable ML-based detection |
 | `features.secret_scanner` | `false` | Enable secrets/PII detection |
-| `prompt_guard.scan_tier` | `1` | 0=critical, 1=+high, 2=+medium |
+| `scan_tier` | `1` | 0=critical only, 1=+high, 2=+medium |
 
 ## 🏗️ Architecture
 
