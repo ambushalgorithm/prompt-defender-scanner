@@ -17,16 +17,7 @@
 - 🔑 **Secret leaks** — Accidental exposure of API keys, tokens, passwords
 - 👤 **PII exposure** — Personal information that shouldn't be shared
 - 💉 **Malicious content** — XSS, SQL injection, RCE attempts
-
-## ⚠️ Two Repos
-
-This scanner works with the OpenClaw plugin, but can be used by any client:
-
-| Repo | Description |
-|------|-------------|
-| **prompt-defender-scanner** | This repo — standalone scanner service |
-| **openclaw-prompt-defender-plugin** | OpenClaw plugin that calls this scanner |
-
+- 
 ## 🚀 Quick Start
 
 ### Prerequisites
