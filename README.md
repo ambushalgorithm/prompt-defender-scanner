@@ -20,7 +20,7 @@
 
 ## ⚠️ Two Repos
 
-This scanner requires a client to send content for scanning:
+This scanner works with the OpenClaw plugin, but can be used by any client:
 
 | Repo | Description |
 |------|-------------|
