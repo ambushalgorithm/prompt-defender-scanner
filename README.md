@@ -1,5 +1,11 @@
 # 🛡️ Prompt Defender Scanner
 
+⚠️🚧 **UNDER CONSTRUCTION** 🚧⚠️
+
+This repository is actively being worked on and is not meant for use until features are completed. Use at your own risk!
+
+---
+
 <p align="center">
   <img src="https://img.shields.io/badge/Scanner-Python-cyan?style=for-the-badge&logo=python" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi" alt="FastAPI">
